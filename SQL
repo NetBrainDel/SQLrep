@@ -1,0 +1,62 @@
+-- 1) Вывести все уникальные имена ролей пользователей.
+select distinct (username)
+from m_users;
+
+
+--2) Подсчитать число машин у каждого пользователя.
+  -- Вывести в формате User full name (username + пробел + user surname) |
+  -- Число машин у пользователя.
+select u.username,' ', u.surname, count(c.id)
+from m_users as u
+join m_cars as c on u.id = c.user_id
+group by user_id,u.username, u.surname;
+
+
+--3) Подсчитать для каждого диллера число машин, старше 2018 года
+  -- производства с красным кузовом.
+select dealer_id,count(*) as count
+from  m_cars
+where color = 'red' and
+      creation > '2018-01-01'
+group by dealer_id;
+
+
+--4) Найти пользователей не из Беларуси и России,
+  -- у которых есть машина 2010-2015 года выпуска из Германии и купленную
+  -- в диллере не в Германии с объемом двигателя больше 3 литра.
+select u.id, username
+from m_users as u
+join m_cars as c on u.id = c.user_id
+join m_auto_dealer as d on d.id = c.dealer_id
+where u.country != 'Belarus' and u.country != 'Russia' and
+      c.creation > '2009-01-01' and
+      c.creation < '2016-01-01' and
+      c.country_of_creation ='Germany' and
+      d.address != 'Germany' and
+      c.capacity_l > 3
+group by username, u.id ;
+
+
+--5) Определить логины пользователей, имеющих больше 3 машин.
+select login, count(user_id)
+from m_users as u
+join m_cars as c on u.id = c.user_id
+group by login
+having count(user_id) > 3;
+
+
+--6) Вывести уникальных диллеров с подсчитанной суммой стоимостей машин,
+  -- связанных с ними.
+select distinct d.name, sum(c.price)
+from m_auto_dealer as d
+join m_cars as c on d.id = c.dealer_id
+group by d.name;
+
+
+--7) Подсчитать количество уникальных пользователей,
+  -- владеющих хотя бы одной машиной,
+  -- стоимость которой превышает среднюю стоимость всех машин.
+select distinct count(user_id), avg(price) as more
+from m_cars
+where user_id is not null and
+      price > (select avg(price) from m_cars);
